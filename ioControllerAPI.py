@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from typing import Union
 import time
+import RPi.GPIO as GPIO
 #python -m fastapi dev ioControllerAPI.py --host 127.0.0.1 --port 9000
 
 
@@ -17,16 +17,23 @@ led_1_status = False
 # Settings
 shutter_timer = .1
 focus_timer = .1
+shutter_standard_bulb_delay = .04
+shutter_quiet_bulb_delay = .1
 
 
 
 app = FastAPI()
-#initilize GPIO lib
+GPIO.setmode(GPIO.BOARD)
+
 
 #Set output pins
-shutterPin = 0
-focusPin = 0
+shutterPin = 18
+focusPin = 16
 led = 0
+
+GPIO.setup(shutterPin, GPIO.OUT)
+GPIO.setup(focusPin,GPIO.OUT)
+print("GPIO Setup Done")
 
 
 # take image sequence
@@ -40,7 +47,7 @@ led = 0
 #   Success or Failure
 
 
-@app.get("/imageSequence/pictureLength/{pictureLength_}/delayLength/{delayLength_}totalPictures/{totalPictures_}")
+@app.get("/imageSequence/pictureLength/{pictureLength_}/delayLength/{delayLength_}/totalPictures/{totalPictures_}")
 def imageSequence(pictureLength_: float, delayLength_: float, totalPictures_: int):
     global picturesTaken
     global pictureLength
@@ -72,7 +79,7 @@ def imageSequence(pictureLength_: float, delayLength_: float, totalPictures_: in
 
     
     # Turn on focus
-# Trigger Focus Relay
+    GPIO.output(focusPin, GPIO.HIGH)
     focus_relay_status = True
 
     # Focus delay
@@ -81,30 +88,30 @@ def imageSequence(pictureLength_: float, delayLength_: float, totalPictures_: in
     # For each picture
     for picture in range(1, totalPictures):
         # Take picture / Toggle Shutter Relay
-    # Trigger Shutter Relay
+        GPIO.output(shutterPin, GPIO.HIGH)
         time.sleep(shutter_timer)
-    # Release Shutter Relay
+        GPIO.output(shutterPin, GPIO.LOW)
         # Count Picture
         picturesTaken = picturesTaken+1
         print(picturesTaken)
         #Picture Delay
         time.sleep(totalDelay)
     # Last Picture No Delay
-# Trigger Shutter Relay
+    GPIO.output(shutterPin, GPIO.HIGH)
     time.sleep(shutter_timer)
-# Release Shutter Relay
+    GPIO.output(shutterPin, GPIO.LOW)
     picturesTaken = picturesTaken+1
     print(picturesTaken)
 
     # Turn off Focus
-# Release Focus Relay
+    GPIO.output(focusPin, GPIO.LOW)
     focus_relay_status = False
     sequenceRunning = False
 
     return {"status": True}
 
 #Bulb Mode
-@app.get("/imageSequenceBulb/pictureLength/{pictureLength_}/delayLength/{delayLength_}totalPictures/{totalPictures_}")
+@app.get("/imageSequenceBulb/pictureLength/{pictureLength_}/delayLength/{delayLength_}/totalPictures/{totalPictures_}")
 def imageSequenceBulb(pictureLength_: float, delayLength_: float, totalPictures_: int):
     global picturesTaken
     global pictureLength
@@ -133,7 +140,7 @@ def imageSequenceBulb(pictureLength_: float, delayLength_: float, totalPictures_
 
     
     # Turn on focus
-# Trigger Focus Relay
+    GPIO.output(focusPin, GPIO.HIGH)
     focus_relay_status = True
 
     # Focus delay
@@ -142,26 +149,29 @@ def imageSequenceBulb(pictureLength_: float, delayLength_: float, totalPictures_
     # For each picture
     for picture in range(1, totalPictures):
         # Take picture / Toggle Shutter Relay
-    # Trigger Shutter Relay
+        GPIO.output(shutterPin, GPIO.HIGH)
         time.sleep(pictureLength)
-    # Release Shutter Relay
+        GPIO.output(shutterPin, GPIO.LOW)
+        GPIO.output(focusPin,GPIO.LOW)
         # Count Picture
         picturesTaken = picturesTaken+1
         print(picturesTaken)
-        time.sleep(delayLength)
-        
+        time.sleep(delayLength-focus_timer)
+        GPIO.output(focusPin, GPIO.HIGH)
+        time.sleep(focus_timer)
+
     # Last Picture No Delay
     # Take picture / Toggle Shutter Relay
-# Trigger Shutter Relay
+    GPIO.output(shutterPin, GPIO.HIGH)
     time.sleep(pictureLength)
-# Release Shutter Relay
+    GPIO.output(shutterPin, GPIO.LOW)
     # Count Picture
     picturesTaken = picturesTaken+1
     print(picturesTaken)
 
 
     # Turn off Focus
-# Release Focus Relay
+    GPIO.output(focusPin, GPIO.LOW)
     focus_relay_status = False
     sequenceRunning = False
 
