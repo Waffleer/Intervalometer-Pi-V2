@@ -3,7 +3,7 @@ Version two of my Intervalometer, completely changing the background and some of
 
 
 Requirements
-- pyzmq 
-    - For interprocess communication
-    - pip install pyzmq
+- fastapi 
+    - for triggering io from website
+    - pip install "fastapi[standard]"
 
