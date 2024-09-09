@@ -1,0 +1,78 @@
+
+<!doctype html>
+<html lang="en">
+<body style="background-color:black;">  
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <title>IntervalometerPi | Dashboard</title>
+	{% if bottom != top  %}
+		<meta http-equiv="refresh" content="1">
+	{% endif %}
+
+	
+  </head>
+  <style>
+
+  </style>
+  <body>
+    <div class="container mt-3 mb-3">
+    <style>
+        .box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+	color:white;
+        }
+
+        .box img {
+            width: 300px;
+            height: 300px;
+        }
+        .text {
+         text-align: left;
+        }
+    </style>
+    <body>
+        <div class="box">
+                <div class="text">
+			
+			{% if pLenSelector %}
+                        pLen&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp|&nbsp&nbsp{{pLen}}<br>
+			{% else  %}
+			pLen&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp|&nbsp&nbsp{{pLen}}&nbsp/&nbspSec<br>
+			{% endif %}
+
+			{% if intervalSelector %}
+                        interval&nbsp|&nbsp&nbsp{{interval}}<br>
+	                {% else %}
+			interval&nbsp|&nbsp&nbsp{{interval}}&nbsp/&nbspSec<br>
+			{% endif %}        
+
+
+			count&nbsp&nbsp&nbsp&nbsp&nbsp|&nbsp&nbsp{{count}}<br>
+                        bulb&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp|&nbsp&nbsp{{bulb}}<br>
+                </div>
+                <form action='' method='POST' style="color:white;">{% csrf_token %}
+                        <br>
+                        {{top}}&nbsp/&nbsp{{bottom}}<br>
+                        <progress id="file" max={{bottom}} value={{top}}>70%</progress>
+
+                        <br>
+			{% if bottom != top  %}
+                        <button name="cancel" >Cancel</button><t>&nbsp&nbsp&nbsp&nbsp
+			{% else %}
+			<button name="again" >Again</button>&nbsp&nbsp&nbsp&nbsp
+			{% endif %}
+ 			<button name="index" >Home</button>
+                </form>
+        </div>
+    </body>
+    </div>
+  </body>
+</html>

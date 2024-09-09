@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+
+{% block title%}
+Clicking
+{% endblock title%}
+
+
+
+{% block content%}
+
+    <style>
+        .box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+	color:white;
+        }
+
+        .box img {
+            width: 300px;
+            height: 300px;
+        }
+    </style>
+
+    <body>
+        <div class="box">
+
+            <form action='' method='POST'>{% csrf_token %}
+                <h3>Clicking Button</h3>
+
+		<br><br>
+
+		<button name="clicking">Click</button><br><br><br>
+
+		<button name="home">Home</button>		
+
+
+
+
+            </form>
+
+
+
+
+            
+
+        </div>
+    </body>
+{% endblock content%}
