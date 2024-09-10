@@ -8,6 +8,8 @@ picturesTaken = -1
 pictureLength = -1
 delayLength = -1
 totalPictures = -1
+shutterType = "s"
+bulb = False
 sequenceRunning = False
 
 focus_relay_status = False
@@ -19,6 +21,9 @@ shutter_timer = .1
 focus_timer = .1
 shutter_standard_bulb_delay = .04
 shutter_quiet_bulb_delay = .1
+
+shutter_standard_delay = .3
+shutter_quiet_delay = 1
 
 
 
@@ -46,19 +51,24 @@ print("GPIO Setup Done")
 # Returns
 #   Success or Failure
 
-
-@app.get("/imageSequence/pictureLength/{pictureLength_}/delayLength/{delayLength_}/totalPictures/{totalPictures_}")
-def imageSequence(pictureLength_: float, delayLength_: float, totalPictures_: int):
+# Standard Mode
+@app.get("/imageSequence/pictureLength/{pictureLength_}/delayLength/{delayLength_}/totalPictures/{totalPictures_}/shutterType/{shutterType_}")
+def imageSequence(pictureLength_: float, delayLength_: float, totalPictures_: int, shutterType_: str):
     global picturesTaken
     global pictureLength
     global delayLength
     global totalPictures
+    global shutterType
+    global bulb
 
     global focus_relay_status
     global shutter_relay_status
 
     global shutter_timer
     global focus_timer
+
+    global shutter_standard_delay
+    global shutter_quiet_delay
 
     global sequenceRunning
 
@@ -70,14 +80,20 @@ def imageSequence(pictureLength_: float, delayLength_: float, totalPictures_: in
     
 
     sequenceRunning = True
+    bulb = False
     picturesTaken = 0
     pictureLength = pictureLength_
     delayLength = delayLength_
     totalPictures = totalPictures_
+    shutterType = shutterType_
 
-    totalDelay = pictureLength+delayLength_
-
-    
+    addDelay = 0.0
+    if shutterType == "q":
+        addDelay = shutter_quiet_delay
+    else:
+        addDelay = shutter_standard_delay
+    totalDelay = pictureLength+delayLength_+addDelay
+        
     # Turn on focus
     GPIO.output(focusPin, GPIO.HIGH)
     focus_relay_status = True
@@ -110,19 +126,26 @@ def imageSequence(pictureLength_: float, delayLength_: float, totalPictures_: in
 
     return {"status": True}
 
-#Bulb Mode
-@app.get("/imageSequenceBulb/pictureLength/{pictureLength_}/delayLength/{delayLength_}/totalPictures/{totalPictures_}")
-def imageSequenceBulb(pictureLength_: float, delayLength_: float, totalPictures_: int):
+# Bulb Mode
+@app.get("/imageSequenceBulb/pictureLength/{pictureLength_}/delayLength/{delayLength_}/totalPictures/{totalPictures_}/shutterType/{shutterType_}")
+def imageSequenceBulb(pictureLength_: float, delayLength_: float, totalPictures_: int, shutterType_: str):
     global picturesTaken
     global pictureLength
     global delayLength
     global totalPictures
+    global shutterType
+    global bulb
 
     global focus_relay_status
     global shutter_relay_status
 
     global shutter_timer
     global focus_timer
+
+    global shutter_standard_delay
+    global shutter_standard_bulb_delay
+    global shutter_quiet_delay
+    global shutter_quiet_bulb_delay
 
     global sequenceRunning
 
@@ -133,10 +156,18 @@ def imageSequenceBulb(pictureLength_: float, delayLength_: float, totalPictures_
             }
 
     sequenceRunning = True
+    bulb = True
     picturesTaken = 0
     pictureLength = pictureLength_
     delayLength = delayLength_
     totalPictures = totalPictures_
+
+    addDelay = 0.0
+    if shutterType == "q":
+        addDelay = shutter_quiet_delay + shutter_quiet_bulb_delay
+    else:
+        addDelay = shutter_standard_delay + shutter_standard_bulb_delay
+    totalDelay = delayLength+addDelay
 
     
     # Turn on focus
@@ -156,7 +187,7 @@ def imageSequenceBulb(pictureLength_: float, delayLength_: float, totalPictures_
         # Count Picture
         picturesTaken = picturesTaken+1
         print(picturesTaken)
-        time.sleep(delayLength-focus_timer)
+        time.sleep(totalDelay-focus_timer)
         GPIO.output(focusPin, GPIO.HIGH)
         time.sleep(focus_timer)
 
@@ -169,19 +200,73 @@ def imageSequenceBulb(pictureLength_: float, delayLength_: float, totalPictures_
     picturesTaken = picturesTaken+1
     print(picturesTaken)
 
-
     # Turn off Focus
     GPIO.output(focusPin, GPIO.LOW)
     focus_relay_status = False
     sequenceRunning = False
+    bulb = False
 
     return {"status": True}
+
+# Clicking mode
+@app.get("/click/bulb/{bulb_}")
+def imageSequence(bulb_: int):
+    global bulb
+
+    global focus_relay_status
+    global shutter_relay_status
+
+    global shutter_timer
+    global focus_timer
+
+    global shutter_standard_delay
+    global shutter_quiet_delay
+
+    if(sequenceRunning == True):
+        return {
+            "status" : False, 
+            "Error": "another sequence was running (sequenceRunning = True)",
+            }        
+        
+    # Turn on focus
+    GPIO.output(focusPin, GPIO.HIGH)
+    focus_relay_status = True
+    # Focus delay
+    time.sleep(focus_timer)
+
+    # Picture No Delay
+    # Non bulb mode
+    GPIO.output(shutterPin, GPIO.HIGH)
+    time.sleep(shutter_timer)
+    GPIO.output(shutterPin, GPIO.LOW)
+
+    # Turn off Focus
+    GPIO.output(focusPin, GPIO.LOW)
+    focus_relay_status = False
+
+    return {"status": True}
+
 
 #Return picturesTaken
 @app.get("/return/picturesTaken")
 def returnPicturesTaken():
     global picturesTaken
     return {"picturesTaken": picturesTaken}
+
+@app.get("/return/sequenceInfo")
+def returnSequenceInfo():
+    global pictureLength
+    global delayLength
+    global totalPictures
+    global shutterType
+    global bulb
+    return {
+        "pictureLength": pictureLength,
+        "delayLength": delayLength,
+        "totalPictures": totalPictures,
+        "shutterType": shutterType,
+        "bulb": bulb,
+    }
 
 
 
