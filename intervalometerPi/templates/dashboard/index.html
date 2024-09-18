@@ -29,17 +29,21 @@ Dashboard
             <form action='' method='POST'>{% csrf_token %}
                 <h3>What do you want in your sequence.</h3>
 
-                <input name="pLen" placeholder="Length of Picture" autocomplete="off"></input><br><br>
+                <input name="pLen" placeholder="Length of Picture" autocomplete="off" required></input><br><br>
 
-                <input type="radio" id="standardShutter" name="shutterType" value='s'>
+                <input type="radio" id="standardShutter" name="shutterType" value='s' required>
                 <label for="standardShutter">Standard Shutter</label><br>
-                <input type="radio" id="quietShutter" name="shutterType" value="q">
+                <input type="radio" id="quietShutter" name="shutterType" value="q" required>
                 <label for="quietShutter">Quiet Shutter&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label><br><br>
                 
-                <input name="delay" placeholder="Additional Delay Between Pictures" autocomplete="off"></input><br><br>
+                <input name="delay" placeholder="Additional Delay Between Pictures" autocomplete="off" required></input><br><br>
                 
-                <input name="count" placeholder="How Many Pictures" autocomplete="off"></input><br><br>
+                <input name="count" placeholder="How Many Pictures" autocomplete="off" required></input><br><br>
 
+                <input type="radio" id="bulb" name="bulbMode" value="b" required>
+                <label for="bulb">Bulb Mode&nbsp&nbsp&nbsp&nbsp&nbsp</label><br>
+                <input type="radio" id="cameraTimer" name="bulbMode" value="" required>
+                <label for="cameraTimer">Camera Timer</label><br><br>
 
 
                 <button name="clear" >Clear</button><t>&nbsp&nbsp&nbsp&nbsp

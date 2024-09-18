@@ -1,14 +1,21 @@
 from django.shortcuts import render, redirect
 from . models import Type, Setting, Cycle, Run
 from subprocess import Popen, PIPE
+import requests, json
 process = 'process'
 running = False
-def takePictures(context: dict):
+runningContext = {}
+
+def takePictures():
     global process
     global running
+    global runningContext
     running = True
 
-    print(context)
+    print("takePictures - runningContext " + str(runningContext))
+    content = requests.get('http://127.0.0.1:8000/').content
+    content = json.loads(content.decode('utf-8'))
+    
 
     #process = Popen(["../a.out",str(pLen),str(interval),str(context["count"]),str(report)])
     #process = Popen(["../a.out",str(pLen),str(interval),str(context["count"]),str(bulb)])
@@ -18,12 +25,13 @@ def cancelPictures():
     pass
 
 def index(request):
+    global runningContext
     context = { 
         "pLen": "",
         "delay": "",
         "shutterType": "",
         "count": "",
-        "bulb": False,
+        "bulb": None,
     }
 
     global running
@@ -35,16 +43,18 @@ def index(request):
         context["pLen"] = request.POST.get("pLen")
         context["delay"] = request.POST.get("delay")
         context["count"] = request.POST.get("count")
-        bulb = request.POST.get("bulb")
+        context["bulb"] = request.POST.get("bulbMode")
         print(context)
-        print(bulb)
 
-        if(bulb == "true"): bulb = 1
-        else: bulb = 2
-        context["bulb"] = bulb
+        if(context["bulb"] == "b"): context["bulb"] = 1
+        else: context["bulb"] = 0
+
+        print("index - context " + str(runningContext))
+
+        runningContext = context
 
         if 'submit' in request.POST:
-            takePictures(context)
+            takePictures()
             return redirect(f'/running')
 
         if 'clear' in request.POST:
@@ -56,7 +66,7 @@ def index(request):
 
 
         print(request.POST)
-        print(context)
+        
     return render(request, 'dashboard/index.html', context)
 
 def clicking(request):
@@ -83,16 +93,12 @@ def running(request):
     context = { 
         "top": 0,
         "bottom": 0,
-        "pLen": "",
-        "delay": "",
-        "shutterType": "",
-        "count": "",
-        "bulb": "",
     }
     global process
     global running
+    global runningContext
     # Get info from curl/api
-    
+    print("running - runningContext " + str(runningContext))
 
     if request.method == 'POST':
         if 'index' in request.POST:

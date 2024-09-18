@@ -11,3 +11,6 @@ Requirements
     - for triggering io from the website
     - pip install "fastapi[standard]"
 
+- requests
+    - For interacting with api from python function
+
