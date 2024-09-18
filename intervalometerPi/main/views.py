@@ -2,9 +2,19 @@ from django.shortcuts import render, redirect
 from . models import Type, Setting, Cycle, Run
 from subprocess import Popen, PIPE
 import requests, json
+import concurrent.futures
+
+threadPool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+apiIP = "127.0.0.1:8000"
 process = 'process'
 running = False
-runningContext = {}
+runningContext = { 
+        "pLen": "",
+        "delay": "",
+        "shutterType": "",
+        "count": "",
+        "bulb": None,
+    }
 
 def takePictures():
     global process
@@ -13,8 +23,20 @@ def takePictures():
     running = True
 
     print("takePictures - runningContext " + str(runningContext))
-    content = requests.get('http://127.0.0.1:8000/').content
-    content = json.loads(content.decode('utf-8'))
+    if(runningContext["bulb"] == False):
+        command = f"/imageSequence/pictureLength/{runningContext["pLen"]}/delayLength/{runningContext["delay"]}/totalPictures/{runningContext['count']}/shutterType/{runningContext['shutterType']}"
+        content = requests.get("http://" + apiIP + command).content
+        content = json.loads(content.decode('utf-8'))
+    else:
+        command = f"/imageSequenceBulb/pictureLength/{runningContext['pLen']}/delayLength/{runningContext['delay']}/totalPictures/{runningContext['count']}/shutterType/{runningContext['shutterType']}"
+        content = requests.get("http://" + apiIP + command).content
+        content = json.loads(content.decode('utf-8'))
+
+
+    # command = "/"
+    # content = requests.get("http://" + apiIP + command).content
+    # content = json.loads(content.decode('utf-8'))
+    print(content)
     
 
     #process = Popen(["../a.out",str(pLen),str(interval),str(context["count"]),str(report)])
@@ -26,6 +48,7 @@ def cancelPictures():
 
 def index(request):
     global runningContext
+    global runningThread
     context = { 
         "pLen": "",
         "delay": "",
@@ -46,15 +69,16 @@ def index(request):
         context["bulb"] = request.POST.get("bulbMode")
         print(context)
 
-        if(context["bulb"] == "b"): context["bulb"] = 1
-        else: context["bulb"] = 0
+        if(context["bulb"] == "b"): context["bulb"] = True
+        else: context["bulb"] = False
 
         print("index - context " + str(runningContext))
 
         runningContext = context
 
         if 'submit' in request.POST:
-            takePictures()
+            threadPool.submit(takePictures)
+            #takePictures()
             return redirect(f'/running')
 
         if 'clear' in request.POST:
@@ -97,6 +121,14 @@ def running(request):
     global process
     global running
     global runningContext
+    context["bottom"] = int(runningContext["count"])
+
+    command = "/return/picturesTaken"
+    content = requests.get("http://" + apiIP + command).content
+    content = json.loads(content.decode('utf-8'))
+    context["top"] = content["picturesTaken"]
+
+    print("top: " + str(context["top"]) + " " + str(type(context["top"])) + "  bottom: " + str(context["bottom"]) + " " + str(type(context["bottom"]))  )
     # Get info from curl/api
     print("running - runningContext " + str(runningContext))
 
@@ -115,8 +147,7 @@ def running(request):
             return redirect("index")
 
         if 'again' in request.POST:
-            
-            takePictures(context)
+            threadPool.submit(takePictures)
             return redirect(f'/running')
         print(context)
 
