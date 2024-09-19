@@ -43,6 +43,18 @@ def takePictures():
     #process = Popen(["../a.out",str(pLen),str(interval),str(context["count"]),str(bulb)])
     #print(process)
 
+def takeClick():
+    global process
+    global running
+    global runningContext
+    running = True
+
+    
+    command = f"/imageSequence/pictureLength/{runningContext["pLen"]}/delayLength/{runningContext["delay"]}/totalPictures/{runningContext['count']}/shutterType/{runningContext['shutterType']}"
+    content = requests.get("http://" + apiIP + command).content
+    content = json.loads(content.decode('utf-8'))
+    
+
 def cancelPictures():
     pass
 
