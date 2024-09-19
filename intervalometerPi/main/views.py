@@ -12,7 +12,7 @@ runningContext = {
         "pLen": "",
         "delay": "",
         "shutterType": "",
-        "count": "",
+        "count": -1,
         "bulb": None,
     }
 
@@ -32,6 +32,7 @@ def takePictures():
         content = requests.get("http://" + apiIP + command).content
         content = json.loads(content.decode('utf-8'))
 
+    running = False
 
     # command = "/"
     # content = requests.get("http://" + apiIP + command).content
@@ -47,10 +48,8 @@ def takeClick():
     global process
     global running
     global runningContext
-    running = True
 
-    
-    command = f"/imageSequence/pictureLength/{runningContext["pLen"]}/delayLength/{runningContext["delay"]}/totalPictures/{runningContext['count']}/shutterType/{runningContext['shutterType']}"
+    command = f"/click/bulb/.1"
     content = requests.get("http://" + apiIP + command).content
     content = json.loads(content.decode('utf-8'))
     
@@ -114,8 +113,7 @@ def clicking(request):
 
     if request.method == 'POST':
         if 'clicking' in request.POST:
-            #Run clicking command
-            pass
+            threadPool.submit(takeClick)
 
         if 'home' in request.POST:
             return redirect(f'/')
@@ -129,11 +127,22 @@ def running(request):
     context = { 
         "top": 0,
         "bottom": 0,
+        "pLen": "",
+        "delay": "",
+        "shutterType": "",
+        "count": "",
+        "bulb": None,
     }
     global process
     global running
     global runningContext
     context["bottom"] = int(runningContext["count"])
+
+    context["pLen"] = runningContext["pLen"]
+    context["delay"] = runningContext["delay"]
+    context["shutterType"] = runningContext["shutterType"]
+    context["count"] = runningContext["count"]
+    context["bulb"] = runningContext["bulb"]
 
     command = "/return/picturesTaken"
     content = requests.get("http://" + apiIP + command).content

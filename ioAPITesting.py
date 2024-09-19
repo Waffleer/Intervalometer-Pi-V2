@@ -215,7 +215,7 @@ def imageSequenceBulb(pictureLength_: float, delayLength_: float, totalPictures_
 
 # Clicking mode
 @app.get("/click/bulb/{bulb_}")
-def imageSequence(bulb_: int):
+def imageSequence(bulb_: float):
     global bulb
 
     global focus_relay_status

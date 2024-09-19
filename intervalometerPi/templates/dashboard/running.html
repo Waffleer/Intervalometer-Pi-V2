@@ -41,22 +41,21 @@
     <body>
         <div class="box">
                 <div class="text">
-			
-			{% if pLenSelector %}
-                        pLen&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp|&nbsp&nbsp{{pLen}}<br>
-			{% else  %}
-			pLen&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp|&nbsp&nbsp{{pLen}}&nbsp/&nbspSec<br>
-			{% endif %}
+                        pLen&nbsp&nbsp{{pLen}}<br>
+                        delay&nbsp&nbsp{{delay}}<br>
+			count&nbsp&nbsp{{count}}<br>
 
-			{% if intervalSelector %}
-                        interval&nbsp|&nbsp&nbsp{{interval}}<br>
-	                {% else %}
-			interval&nbsp|&nbsp&nbsp{{interval}}&nbsp/&nbspSec<br>
-			{% endif %}        
+                        {% if shutterType == s %}
+                        Standard Shutter<br>
+                        {% else %}
+                        Quiet Shutter<br>
+                        {% endif %}
 
-
-			count&nbsp&nbsp&nbsp&nbsp&nbsp|&nbsp&nbsp{{count}}<br>
-                        bulb&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp|&nbsp&nbsp{{bulb}}<br>
+                        {% if bulb == 1 %}
+                        Bulb Mode<br>
+                        {% else %}
+                        Standard Mode<br>
+                        {% endif %}
                 </div>
                 <form action='' method='POST' style="color:white;">{% csrf_token %}
                         <br>

@@ -210,7 +210,7 @@ def imageSequenceBulb(pictureLength_: float, delayLength_: float, totalPictures_
 
 # Clicking mode
 @app.get("/click/bulb/{bulb_}")
-def imageSequence(bulb_: int):
+def imageClickBulb(bulb_: float):
     global bulb
 
     global focus_relay_status
@@ -246,6 +246,41 @@ def imageSequence(bulb_: int):
 
     return {"status": True}
 
+@app.get("/click/standard")
+def imageClick():
+
+    global focus_relay_status
+    global shutter_relay_status
+
+    global shutter_timer
+    global focus_timer
+
+    global shutter_standard_delay
+    global shutter_quiet_delay
+
+    if(sequenceRunning == True):
+        return {
+            "status" : False, 
+            "Error": "another sequence was running (sequenceRunning = True)",
+            }        
+        
+    # Turn on focus
+    GPIO.output(focusPin, GPIO.HIGH)
+    focus_relay_status = True
+    # Focus delay
+    time.sleep(focus_timer)
+
+    # Picture No Delay
+    # Non bulb mode
+    GPIO.output(shutterPin, GPIO.HIGH)
+    time.sleep(shutter_timer)
+    GPIO.output(shutterPin, GPIO.LOW)
+
+    # Turn off Focus
+    GPIO.output(focusPin, GPIO.LOW)
+    focus_relay_status = False
+
+    return {"status": True}
 
 #Return picturesTaken
 @app.get("/return/picturesTaken")
